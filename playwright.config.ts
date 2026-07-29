@@ -22,9 +22,14 @@ import { defineConfig, devices } from '@playwright/test';
  *   requests like a real user - running multiple browser sessions against
  *   the same live funnel concurrently would work against that, even though
  *   there are currently only two spec files.
- * - `headless: true` is set explicitly (rather than just relying on the
- *   Playwright default) since headless was specifically asked for; use
- *   `npm run test:headed` when you want to watch a run locally.
+ * - `headless: false` is the default here so a plain `npm test` opens
+ *   visible browser windows you can actually watch - useful for a
+ *   still-in-progress interview suite where seeing the run matters more
+ *   than running invisibly. Playwright's CLI can force headed mode on top
+ *   of a headless-by-default config (`--headed`), but there's no
+ *   equivalent flag to force headless on top of a headed-by-default one,
+ *   so if this ever needs to run invisibly (CI, for instance), flip this
+ *   back to `true` here rather than trying to override it from the CLI.
  * - Chromium's project below sets a desktop Chrome user agent. Playwright's
  *   headless Chromium otherwise reports "HeadlessChrome" in its UA string,
  *   and this site's WAF 403s that outright (confirmed by comparing against
@@ -52,7 +57,7 @@ export default defineConfig({
     /* Base URL to use in actions like `await page.goto('')`. */
     // baseURL: 'http://localhost:3000',
 
-    headless: true,
+    headless: false,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',

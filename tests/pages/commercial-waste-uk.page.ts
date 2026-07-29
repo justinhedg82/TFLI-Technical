@@ -97,7 +97,12 @@ export class CommercialWasteUkApplyPage extends BaseApplicationPage {
     await expect(this.page.getByText('Type of Waste')).toBeVisible();
     await expect(this.page.getByText(WASTE_TYPE_LABEL[expected.wasteType], { exact: true })).toBeVisible();
     await expect(this.page.getByText('Postcode', { exact: true })).toBeVisible();
-    await expect(this.page.getByText(expected.postcode)).toBeVisible();
+    // Exact match matters here, not just tidiness: the site's own footer
+    // prints its registered office address, and if that address's postcode
+    // ever happens to match the one a test enters (as it did while working
+    // on this), a substring match would ambiguously match both the summary
+    // row and the footer copy.
+    await expect(this.page.getByText(expected.postcode, { exact: true })).toBeVisible();
     await expect(this.page.getByText(COLLECTION_FREQUENCY_LABEL[expected.collectionFrequency])).toBeVisible();
 
     const getQuoteButton = this.page.getByRole('button', { name: 'Get My Quote' });

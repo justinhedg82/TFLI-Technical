@@ -36,22 +36,27 @@ funnel.
 
 ## Running the tests
 
-Run the full suite headlessly (all three browsers, as configured in
+Run the full suite (all three browsers, as configured in
 `playwright.config.ts`):
 
 ```bash
 npm test
 ```
 
-These are real, human-paced runs against a live site (see "Why this is
-slower than a typical test suite" below), so a full run takes a few minutes
-rather than seconds.
+Browser windows are visible by default (`headless: false` in the config) so
+you can actually watch a run happen - useful while this suite is still
+being worked on. These are also real, human-paced runs against a live site
+(see "Why this is slower than a typical test suite" below), so a full run
+takes a few minutes rather than seconds.
+
+If you want it to run invisibly instead (e.g. in CI), there's no CLI flag
+for that when the config already defaults to headed - flip `headless` back
+to `true` in `playwright.config.ts`.
 
 Other useful scripts (see `package.json`):
 
 | Command                | What it does                                                         |
 | ----------------------- | ---------------------------------------------------------------------- |
-| `npm run test:headed`  | Runs tests with visible browser windows instead of headless mode      |
 | `npm run test:ui`      | Opens Playwright's interactive UI mode for debugging/watching tests   |
 | `npm run test:debug`   | Runs tests with the Playwright inspector attached, step-by-step       |
 | `npm run report`       | Opens the last HTML test report in a browser                          |

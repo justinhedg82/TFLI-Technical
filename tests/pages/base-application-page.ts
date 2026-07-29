@@ -103,16 +103,49 @@ export abstract class BaseApplicationPage {
    * never settles and the click times out. `force: true` skips that
    * stability wait; we've already confirmed the button is the right one via
    * its selector, so we're not losing any real safety by skipping it.
+   *
+   * There's a second, separate problem this guards against: on the very
+   * first click of a fresh browser session, the click can occasionally
+   * land before this SPA has finished wiring up its handlers, and nothing
+   * happens - the button just sits there. That's inherently variable (it
+   * depends on how fast the page hydrates on any given run), so rather
+   * than keep guessing a fixed delay that's "long enough", this checks
+   * whether the click actually took effect - the option's own button is
+   * replaced by the next question once the wizard advances - and clicks
+   * again if it didn't.
    */
   protected async chooseOption(selector: string): Promise<void> {
     await thinkPause(this.page);
-    await this.page.locator(selector).click({ force: true });
+    const option = this.page.locator(selector);
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      await option.click({ force: true });
+      await this.page.waitForTimeout(1000);
+      const stillOnSameStep = await option.isVisible().catch(() => false);
+      if (!stillOnSameStep) {
+        return;
+      }
+    }
   }
 
-  /** Types the given value into a field at human speed, then moves on. */
+  /**
+   * Types the given value into a field at human speed, then moves on.
+   *
+   * Caught this one in a headed run (typing is a touch slower to observe
+   * with a real window painting), but it's a real site behaviour, not a
+   * headed-only quirk: occasionally the field's own re-render swallows the
+   * very last keystroke, leaving it one character short (e.g. a phone
+   * number field showing "01625 32255" instead of "01625 322555") and
+   * failing the site's own validation. Verifying what actually landed and
+   * retyping once if it's wrong is cheap insurance against that.
+   */
   protected async answerWith(selector: string, value: string): Promise<void> {
     await thinkPause(this.page);
-    await humanType(this.page.locator(selector), value);
+    const field = this.page.locator(selector);
+    await humanType(field, value);
+    if ((await field.inputValue()) !== value) {
+      await field.fill('');
+      await humanType(field, value);
+    }
   }
 
   /** Submits the current step and waits for the next question to render. */
